@@ -1,25 +1,15 @@
-# ⚠️ IMPORTANT: TensorFlow requires Python 3.9-3.12 (NOT Python 3.14+)
-# You currently have Python 3.14, which is NOT compatible with TensorFlow.
-# 
-# SOLUTION: Install Python 3.12 and create a virtual environment
-# 
-# Step 1: Install Python 3.12 via Homebrew:
-#   brew install python@3.12
-# 
-# Step 2: Create a virtual environment with Python 3.12:
-#   python3.12 -m venv venv
-#   source venv/bin/activate
-# 
-# Step 3: Install dependencies:
-#   pip install -r requirements.txt
-#
-# Step 4: Always activate the virtual environment before running your code:
-#   source venv/bin/activate
+# Core dependencies for PBIIBP
+# ⚠️ TensorFlow requires Python 3.9-3.12
 
-# Core dependencies
+# Deep Learning
+torch>=1.9.0
 tensorflow>=2.13.0
 tensorflow-hub>=0.15.0
+
+# Computer Vision
 opencv-python>=4.8.0
+
+# Scientific Computing
 numpy>=1.24.0,<2.0.0
 matplotlib>=3.7.0
 
