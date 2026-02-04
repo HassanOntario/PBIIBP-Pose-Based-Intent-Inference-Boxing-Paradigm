@@ -2,10 +2,10 @@
 Pose dataset module for loading and processing MoveNet pose data.
 
 This module provides utilities for creating temporal sequences from
-pose keypoint data for use with the TemporalLSTM model.
+pose keypoint data for use with LSTM-based models.
 """
 
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -30,7 +30,7 @@ class PoseDataset(Dataset):
         self,
         sequences: np.ndarray,
         labels: np.ndarray,
-        transform: Optional[callable] = None,
+        transform: Optional[Callable] = None,
     ):
         self.sequences = torch.FloatTensor(sequences)
         self.labels = torch.LongTensor(labels)
