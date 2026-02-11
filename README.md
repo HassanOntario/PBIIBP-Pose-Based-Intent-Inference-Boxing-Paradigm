@@ -2,7 +2,7 @@
 
 Intent inference based on Google MoveNet Lightning pose data in conjunction with a temporal LSTM model.
 
-![Alt text](three_pane_aligned1-ezgif.com-crop.gif.gif)
+![Demo](three_pane_aligned1-ezgif.com-crop.gif)
 ## Overview
 
 This project implements a temporal LSTM neural network for inferring boxing intent from pose keypoint sequences. It processes data from Google MoveNet Lightning (17 keypoints with x, y, confidence values = 51 features per frame), calculates kinematic features (such as velocity, acceleration, angle) and classifies boxing actions/intent (in this case: intent to jab).
