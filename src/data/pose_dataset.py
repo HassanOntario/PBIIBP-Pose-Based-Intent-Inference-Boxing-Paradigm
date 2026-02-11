@@ -2,7 +2,8 @@
 Pose dataset module for loading and processing MoveNet pose data.
 
 This module provides utilities for creating temporal sequences from
-pose keypoint data for use with LSTM-based models.
+pose keypoint data — optionally augmented with engineered kinematic
+features — for use with LSTM-based models.
 """
 
 from typing import Callable, List, Optional, Tuple
@@ -10,6 +11,8 @@ from typing import Callable, List, Optional, Tuple
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+
+from src.features.kinematic_features import KinematicFeatureExtractor
 
 
 class PoseDataset(Dataset):
@@ -70,12 +73,14 @@ def create_sequences(
     labels: np.ndarray,
     sequence_length: int = 30,
     stride: int = 1,
+    feature_extractor: Optional[KinematicFeatureExtractor] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Create sliding window sequences from continuous pose data.
     
-    This function takes raw pose data and creates overlapping sequences
-    suitable for LSTM training.
+    This function takes raw pose data, optionally augments each frame
+    with engineered kinematic features, and creates overlapping
+    sequences suitable for LSTM training.
     
     Args:
         pose_data: Raw pose data of shape (num_frames, num_features).
@@ -83,17 +88,28 @@ def create_sequences(
         labels: Frame-level labels of shape (num_frames,).
         sequence_length: Number of frames per sequence (default: 30).
         stride: Step size between consecutive sequences (default: 1).
+        feature_extractor: Optional ``KinematicFeatureExtractor`` instance.
+                           When provided, engineered features are computed
+                           from the raw pose data and concatenated along the
+                           feature axis before windowing.
         
     Returns:
         Tuple of (sequences, sequence_labels) where:
-        - sequences has shape (num_sequences, sequence_length, num_features)
+        - sequences has shape (num_sequences, sequence_length, total_features)
+          total_features = num_features (+ num_engineered if extractor given)
         - sequence_labels has shape (num_sequences,)
         
     Example:
-        >>> poses = np.random.randn(100, 51)  # 100 frames of MoveNet data
-        >>> labels = np.random.randint(0, 4, 100)  # 4 intent classes
-        >>> seqs, seq_labels = create_sequences(poses, labels, sequence_length=30)
+        >>> poses = np.random.randn(100, 51)
+        >>> labels = np.random.randint(0, 4, 100)
+        >>> # Raw only
+        >>> seqs, sl = create_sequences(poses, labels, sequence_length=30)
         >>> print(seqs.shape)  # (71, 30, 51)
+        >>>
+        >>> # Raw + kinematic features (51 + 22 = 73)
+        >>> extractor = KinematicFeatureExtractor(fps=30)
+        >>> seqs, sl = create_sequences(poses, labels, 30, feature_extractor=extractor)
+        >>> print(seqs.shape)  # (71, 30, 73)
     """
     if len(pose_data) != len(labels):
         raise ValueError(
@@ -107,13 +123,17 @@ def create_sequences(
             f"data length ({len(pose_data)})"
         )
     
+    # Optionally augment with engineered features
+    if feature_extractor is not None:
+        frame_data = feature_extractor.extract_and_concat(pose_data)
+    else:
+        frame_data = pose_data
+    
     sequences: List[np.ndarray] = []
     sequence_labels: List[int] = []
     
-    num_sequences = (len(pose_data) - sequence_length) // stride + 1
-    
-    for i in range(0, len(pose_data) - sequence_length + 1, stride):
-        seq = pose_data[i:i + sequence_length]
+    for i in range(0, len(frame_data) - sequence_length + 1, stride):
+        seq = frame_data[i:i + sequence_length]
         sequences.append(seq)
         
         # Use the label of the last frame in the sequence
